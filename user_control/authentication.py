@@ -1,6 +1,7 @@
 import jwt
 from django.conf import settings
 from datetime import datetime
+from rest_framework import authentication
 from rest_framework.authentication import BaseAuthentication
 from user_control.models import CustomUser
 
@@ -18,6 +19,16 @@ class Authentication(BaseAuthentication):
             return user
         except Exception:
             return None
+
+    def validate_request(self,headers):
+        authorizatioon = headers.get("Authorization",None)
+        if not authorizatioon:
+            return None
+        token = headers["Authorization"][7:]
+        decoded_data = Authentication.verify_token(token)
+        if not decoded_data:
+            return None
+        return decoded_data
 
     @staticmethod
     def verify_token(token):
