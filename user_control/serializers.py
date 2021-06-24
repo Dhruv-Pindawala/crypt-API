@@ -8,5 +8,5 @@ class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
 
-class RefreshSerializer(serializers.S):
+class RefreshSerializer(serializers.Serializer):
     refresh = serializers.CharField()
