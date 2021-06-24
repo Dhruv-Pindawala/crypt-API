@@ -1,14 +1,17 @@
-from django.shortcuts import render
+from django.http import request
 import jwt
+from rest_framework import serializers
 from .models import Jwt
+from user_control.models import CustomUser
 from datetime import datetime, timedelta
 from django.conf import settings
 import random
 import string
-from .serializers import RefreshSerializer
+from .serializers import RefreshSerializer, RegisterSerializer
 from .authentication import Authentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 def get_access_token(payload):
     return jwt.encode(
@@ -26,6 +29,17 @@ def get_refresh_token():
         settings.SECRET_KEY,
         algorithm="HS256"
     )
+
+class RegisterView(APIView):
+    serializer_class = RegisterSerializer
+
+    def post(self,reques):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        CustomUser.objects._create_user(**serializer.validated_data)
+
+        return Response({"success":"User successfully created."})
 
 class RefreshView(APIView):
     serializer_class = RefreshSerializer
@@ -48,3 +62,10 @@ class RefreshView(APIView):
         active_jwt.save()
 
         return Response({"access":access,"refresh":refresh})
+    
+class GetSecuredInfo(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self,request):
+        print(request.user)
+        return Response({"data":"This is a secured information"})
+
