@@ -7,11 +7,12 @@ from datetime import datetime, timedelta
 from django.conf import settings
 import random
 import string
-from .serializers import RefreshSerializer, RegisterSerializer
+from .serializers import RefreshSerializer, RegisterSerializer, LoginSerializer
 from .authentication import Authentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate
 
 def get_access_token(payload):
     return jwt.encode(
@@ -30,10 +31,35 @@ def get_refresh_token():
         algorithm="HS256"
     )
 
+class LoginView(APIView):
+    serializer_class = LoginSerializer
+
+    def post(self,request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = authenticate(
+            username=serializer.validated_data['username'],
+            password=serializer.validated_data['password']
+        )
+
+        if not user:
+            return Response({"error":"Invalid username or password"},status="400")
+        
+        Jwt.objects.filter(user_id=user.id).delete()
+        access = get_access_token({"user_id":user.id})
+        refresh = get_refresh_token()
+
+        Jwt.objects.create(
+            user_id=user.id,access=access.decode(),refresh=refresh.decode()
+        )
+
+        return Response({"access":access,"refresh":refresh})
+
 class RegisterView(APIView):
     serializer_class = RegisterSerializer
 
-    def post(self,reques):
+    def post(self,request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
