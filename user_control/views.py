@@ -1,8 +1,6 @@
-from django.http import request
 import jwt
-from rest_framework import serializers
-from .models import Jwt
-from user_control.models import CustomUser
+from .models import CustomUser, Jwt
+from .models import CustomUser
 from datetime import datetime, timedelta
 from django.conf import settings
 import random
