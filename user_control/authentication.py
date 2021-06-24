@@ -2,6 +2,7 @@ import jwt
 from django.conf import settings
 from datetime import datetime
 from rest_framework.authentication import BaseAuthentication
+from user_control.models import CustomUser
 
 class Authentication(BaseAuthentication):
 
@@ -10,6 +11,13 @@ class Authentication(BaseAuthentication):
         if not data:
             return None, None
         return self.get_user(data["user_id"]), None
+    
+    def get_user(self,user_id):
+        try:
+            user = CustomUser.objects.get(id=user_id)
+            return user
+        except Exception:
+            return None
 
     @staticmethod
     def verify_token(token):
