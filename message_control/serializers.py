@@ -1,4 +1,4 @@
-from rest_framework import ModelSerializer
+from rest_framework.serializers import ModelSerializer
 from .models import GenericFileUpload
 
 class GenericFileUploadSerializer(ModelSerializer):
