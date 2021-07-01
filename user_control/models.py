@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from message_control.models import GenericFileUpload
 
 class CustomUserManager(BaseUserManager):
     def _create_user(self,username,password,**extra_fields):
@@ -38,6 +39,19 @@ class CustomUser(AbstractBaseUser,PermissionsMixin):
     
     class Meta:
         ordering = ("created_at",)
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, related_name='user_profile', on_delete=models.CASCADE) # when a user is deleted, its profile is also removed
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    caption = models.CharField(max_length=250)
+    about = models.TextField()
+    profile_picture = models.ForeignKey(GenericFileUpload, related_name='user_image', on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.user.username # username is unique
 
 class Jwt(models.Model):
     user = models.OneToOneField(CustomUser,related_name="login_useer",on_delete=models.CASCADE)
