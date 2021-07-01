@@ -1,5 +1,6 @@
 from rest_framework.test import APITestCase
 from .views import get_refresh_token, get_access_token, get_random
+from .models import CustomUser
 
 class TestGenericFunctions(APITestCase):
     def test_get_random(self):
@@ -58,3 +59,27 @@ class TestAuth(APITestCase):
 
         self.assertTrue(result['access'])
         self.assertTrue(result["refresh"])
+
+class TestUserInfo(APITestCase):
+    profile_url = '/user/profile'
+    login_url = "/user/login"
+    register_url = "/user/register"
+
+    def setUp(self):
+        self.user = CustomUser.objects.create(username="testuser", password="password")
+        self.client.force_authenticate(user=self.user)
+    
+    def test_post_user_profile(self):
+
+        payload = {
+            "user_id": self.user.id,
+            "first_name": "test",
+            "last_name": "user",
+            "caption": "Think Code Debug Repeat",
+            "about": "Trying to learn Django"
+        }
+
+        response = self.client.post(self.profile_url, data=payload)
+        result = response.json()
+        self.assertEqual(result["first_name"], "test")
+        self.assertEqual(result["last_name"], "user")
