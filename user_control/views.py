@@ -5,12 +5,13 @@ from datetime import datetime, timedelta
 from django.conf import settings
 import random
 import string
-from .serializers import RefreshSerializer, RegisterSerializer, LoginSerializer
+from .serializers import RefreshSerializer, RegisterSerializer, LoginSerializer, UserProfileSerializer, UserProfile
 from .authentication import Authentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
+from rest_framework.viewsets import ModelViewSet
 
 def get_access_token(payload):
     return jwt.encode(
@@ -95,3 +96,7 @@ class GetSecuredInfo(APIView):
         print(request.user)
         return Response({"data":"This is a secured information"})
 
+class UserProfileView(ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    permission_classes = (IsAuthenticated,) # access to profile only when logged in
