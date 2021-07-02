@@ -17,7 +17,7 @@ class CustomUserSerializer(serializers.Serializer):
 
     class Meta:
         model = CustomUser
-        fields = "__all__"
+        exclude = ('password',)
 
 class UserProfileSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)

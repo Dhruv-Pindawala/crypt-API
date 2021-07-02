@@ -1,4 +1,3 @@
-from django.http import response
 from rest_framework.test import APITestCase
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
