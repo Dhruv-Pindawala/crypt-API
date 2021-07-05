@@ -10,7 +10,7 @@ from .serializers import RefreshSerializer, RegisterSerializer, LoginSerializer,
 from .authentication import Authentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from chatapi.custom_methods import IsAuthenticatedCustom
 from django.contrib.auth import authenticate
 from rest_framework.viewsets import ModelViewSet
 import re
@@ -92,17 +92,11 @@ class RefreshView(APIView):
         active_jwt.save()
 
         return Response({"access":access,"refresh":refresh})
-    
-class GetSecuredInfo(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self,request):
-        print(request.user)
-        return Response({"data":"This is a secured information"})
 
 class UserProfileView(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = (IsAuthenticated,) # access to profile only when logged in
+    permission_classes = (IsAuthenticatedCustom,) # access to profile only when logged in
 
     def get_queryset(self):
         data = self.request.query_params.dict()

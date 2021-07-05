@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.viewsets import ModelViewSet
 from .serializers import GenericFileUpload, GenericFileUploadSerializer, Message, MessageAttachment, MessageSerializer
-from rest_framework.permissions import IsAuthenticated
+from chatapi.custom_methods import IsAuthenticatedCustom
 from rest_framework.response import Response
 
 class GenericFileUploadView(ModelViewSet):
@@ -11,7 +11,7 @@ class GenericFileUploadView(ModelViewSet):
 class MessageView(ModelViewSet):
     queryset = Message.objects.select_related('sender', 'receiver').prefetch_related('message_attachments')
     serializer_class = MessageSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticatedCustom,)
 
     def create(self,request,*args,**kwargs):
 
