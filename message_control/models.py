@@ -18,9 +18,15 @@ class Message(models.Model):
 
     def __str__(self):
         return f"message between {self.sender.username} and {self.receiver.username}"
+
+    class Meta:
+        ordering = ("-created_at",) # newest comes first
     
 class MessageAttachment(models.Model):
     message = models.ForeignKey(Message, related_name='message_attachments', on_delete=models.CASCADE)
     attachment = models.ForeignKey(GenericFileUpload, related_name='message_uploads', on_delete=models.CASCADE)
     caption = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at",) # oldest comes first
