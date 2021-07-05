@@ -1,8 +1,24 @@
+from chatapi.settings import SOCKET_SERVER
 from rest_framework.viewsets import ModelViewSet
 from .serializers import GenericFileUpload, GenericFileUploadSerializer, Message, MessageAttachment, MessageSerializer
 from chatapi.custom_methods import IsAuthenticatedCustom
 from rest_framework.response import Response
 from django.db.models import Q
+import requests
+import json
+
+def handleRequest(serializerData):
+    notification = {
+        'message': serializerData.data.get('message'),
+        'from': serializerData.data.get('sender'),
+        'receiver': serializerData.data.get('receiver').get('id')
+    }
+
+    headers = {
+        'Content-Type': 'application/json',
+    }
+    requests.post(SOCKET_SERVER,json.dumps(notification),headers=headers)
+    return True
 
 class GenericFileUploadView(ModelViewSet):
     queryset = GenericFileUpload.objects.all()
@@ -42,6 +58,8 @@ class MessageView(ModelViewSet):
 
             return Response(self.serializer_class(message_data).data, status=201)
 
+        handleRequest(serializer)
+
         return Response(serializer.data, status=201)
     
     def update(self,request,*args,**kwargs):
@@ -60,4 +78,6 @@ class MessageView(ModelViewSet):
             message_data = self.get_object()
             return Response(self.serializer_class(message_data).data, status=200)
         
+        handleRequest(serializer)
+
         return Response(serializer.data, status=200)
