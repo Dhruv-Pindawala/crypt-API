@@ -52,6 +52,9 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username # username is unique
+    
+    class Meta:
+        ordering = ("created_at",)
 
 class Jwt(models.Model):
     user = models.OneToOneField(CustomUser,related_name="login_useer",on_delete=models.CASCADE)

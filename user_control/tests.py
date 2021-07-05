@@ -1,6 +1,6 @@
 from rest_framework.test import APITestCase
 from .views import get_refresh_token, get_access_token, get_random
-from .models import CustomUser
+from .models import CustomUser, UserProfile
 
 class TestGenericFunctions(APITestCase):
     def test_get_random(self):
@@ -66,8 +66,20 @@ class TestUserInfo(APITestCase):
     register_url = "/user/register"
 
     def setUp(self):
-        self.user = CustomUser.objects.create(username="testuser", password="password")
-        self.client.force_authenticate(user=self.user)
+        payload = {
+            "username": "adefemigreat",
+            "password": "ade123",
+            }
+
+        self.user = CustomUser.objects._create_user(**payload)
+
+        # login
+        response = self.client.post(self.login_url, data=payload)
+        result = response.json()
+        print(result)
+
+        self.bearer = {
+            'HTTP_AUTHORIZATION': 'Bearer {}'.format(result['access'])}
     
     def test_post_user_profile(self):
 
@@ -83,3 +95,4 @@ class TestUserInfo(APITestCase):
         result = response.json()
         self.assertEqual(result["first_name"], "test")
         self.assertEqual(result["last_name"], "user")
+    

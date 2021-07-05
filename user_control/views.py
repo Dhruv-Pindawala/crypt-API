@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from rest_framework.viewsets import ModelViewSet
 import re
+from django.db.models import Q
 
 def get_access_token(payload):
     return jwt.encode(
