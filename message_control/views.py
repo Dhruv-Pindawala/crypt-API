@@ -17,7 +17,10 @@ def handleRequest(serializerData):
     headers = {
         'Content-Type': 'application/json',
     }
-    requests.post(SOCKET_SERVER,json.dumps(notification),headers=headers)
+    try:
+        requests.post(SOCKET_SERVER,json.dumps(notification),headers=headers)
+    except Exception as e:
+        pass
     return True
 
 class GenericFileUploadView(ModelViewSet):
