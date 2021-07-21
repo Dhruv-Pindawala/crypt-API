@@ -33,6 +33,17 @@ def get_refresh_token():
         algorithm="HS256"
     )
 
+def decodeJWT(bearer):
+    if not bearer:
+        return None
+    token = bearer[7:]
+    decoded = jwt.decode(token, key=settings.SECRET_KEY)
+    if decoded:
+        try:
+            return CustomUser.objects.get(id=decoded['user_id'])
+        except Exception:
+            return None
+
 class LoginView(APIView):
     serializer_class = LoginSerializer
 
@@ -99,18 +110,24 @@ class UserProfileView(ModelViewSet):
     permission_classes = (IsAuthenticatedCustom,) # access to profile only when logged in
 
     def get_queryset(self):
+        
+        if self.request.method.lower() != 'get':
+            return self.queryset
+
         data = self.request.query_params.dict()
-        keyword = data.get('keyword', None)
+        keyword = data.pop('keyword', None)
 
         if keyword:
             search_fields = (
                 "user__username", "first_name", "last_name", "user__email"
             )
-
             query = self.get_query(keyword, search_fields)
-            return self.queryset.filter(query).distinct()
+            try:
+                return self.queryset.filter(query).filter(**data).exclude(Q(user_id=self.request.user.id) | Q(user__is_superuser=True)).distinct()
+            except Exception as e:
+                raise Exception(e)
 
-        return self.queryset
+        return self.queryset.filter(**data).exclude(Q(user_id=self.request.user.id) | Q(user__is_superuser=True)).distinct()
 
     @staticmethod
     def get_query(query_string, search_fields):
@@ -138,3 +155,29 @@ class UserProfileView(ModelViewSet):
     def normalize_query(query_string, findterms=re.compile(r'"([^"]+)"|(\S+)').findall, normspace=re.compile(r'\s{2,}').sub):
 
         return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)]
+
+class MeView(APIView):
+    permission_classes = (IsAuthenticatedCustom,)
+    serializer_class = UserProfileSerializer
+
+    def get(self, request):
+        data = {}
+        try:
+            data = self.serializer_class(request.user.user_profile).data
+        except Exception:
+            data = {
+                "user": {
+                    "id": request.user.id
+                }
+            }
+        return Response(data, status=200)
+
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticatedCustom,)
+
+    def get(self, request):
+        user_id = request.user.id
+
+        Jwt.objects.filter(user_id=user_id).delete()
+
+        return Response('Logged out successfully', status=200)
