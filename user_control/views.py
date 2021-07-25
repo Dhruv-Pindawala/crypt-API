@@ -1,12 +1,10 @@
-from django.db.models import query
 import jwt
-from .models import CustomUser, Jwt
-from .models import CustomUser
+from .models import CustomUser, Jwt, Favorite
 from datetime import datetime, timedelta
 from django.conf import settings
 import random
 import string
-from .serializers import RefreshSerializer, RegisterSerializer, LoginSerializer, UserProfileSerializer, UserProfile
+from .serializers import RefreshSerializer, RegisterSerializer, LoginSerializer, UserProfileSerializer, UserProfile, FavoriteSerializer
 from .authentication import Authentication
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -115,6 +113,7 @@ class UserProfileView(ModelViewSet):
             return self.queryset
 
         data = self.request.query_params.dict()
+        data.pop("page", None)
         keyword = data.pop('keyword', None)
 
         if keyword:
@@ -181,3 +180,32 @@ class LogoutView(APIView):
         Jwt.objects.filter(user_id=user_id).delete()
 
         return Response('Logged out successfully', status=200)
+
+class UpdateFavoriteView(APIView):
+    permission_classes = (IsAuthenticatedCustom,)
+    serializer_class = FavoriteSerializer
+
+    def post(self, request, *args, **kwargs):
+        user_id = request.user.id
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        favorite = Favorite.objects.filter(user_id=user_id, favorite_id=serializer.validated_data["favorite_id"])
+
+        if favorite:
+            favorite.delete()
+            return Response("successful")
+        
+        Favorite.objects.create(user_id=user_id, favorite_id=serializer.validated_data["favorite_id"])
+        return Response("successful")
+
+class CheckIsFavoriteView(APIView):
+    permission_classes = (IsAuthenticatedCustom,)
+
+    def get(self, request, *args, **kwargs):
+        favorite_id = kwargs.get("favorite_id", None)
+        user_id = request.user.id
+        favorite = Favorite.objects.filter(user_id=user_id, favorite_id=favorite_id)
+
+        if favorite:
+            return Response(True)
+        return Response(False)

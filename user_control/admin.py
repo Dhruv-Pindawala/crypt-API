@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import CustomUser, Jwt
+from .models import CustomUser, Favorite, Jwt
 
-admin.site.register((CustomUser,Jwt))
+admin.site.register((CustomUser,Jwt, Favorite))

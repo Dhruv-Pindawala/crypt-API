@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, User
 from message_control.models import GenericFileUpload
 from django.utils import timezone
 
@@ -55,6 +55,17 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username # username is unique
+    
+    class Meta:
+        ordering = ("created_at",)
+    
+class Favorite(models.Model):
+    user = models.ForeignKey(CustomUser, related_name="user_favorites", on_delete=models.CASCADE)
+    favorite = models.ForeignKey(CustomUser, related_name="user_favoured", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.favorite.username}"
     
     class Meta:
         ordering = ("created_at",)
